@@ -6,16 +6,12 @@ from services.generator.generator_service import Generator
 
 class App(Ui_MainWindow):
     def setupUi(self, MainWindow):
-        print(self)
         super().setupUi(MainWindow)
         self.generateButton.clicked.connect(self.on_generate_pdf)
 
     def on_generate_pdf(fileName = 'test'):
-        print('weee')
         generator = Generator()
         generator.generate_pdf(fileName)
-
-    
 
 
 if __name__ == "__main__":
