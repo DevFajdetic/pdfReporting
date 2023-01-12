@@ -18,7 +18,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>190</y>
+      <y>230</y>
       <width>75</width>
       <height>23</height>
      </rect>
@@ -46,7 +46,7 @@
       <x>30</x>
       <y>60</y>
       <width>331</width>
-      <height>51</height>
+      <height>57</height>
      </rect>
     </property>
     <layout class="QFormLayout" name="formLayout">
@@ -77,12 +77,35 @@
      <rect>
       <x>30</x>
       <y>10</y>
-      <width>131</width>
-      <height>31</height>
+      <width>161</width>
+      <height>41</height>
      </rect>
     </property>
     <property name="text">
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; color:blue;&quot;&gt;Templating&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="filename">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>180</y>
+      <width>191</width>
+      <height>31</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="browserButton">
+    <property name="geometry">
+     <rect>
+      <x>240</x>
+      <y>180</y>
+      <width>101</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Browser</string>
     </property>
    </widget>
   </widget>
@@ -92,7 +115,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>

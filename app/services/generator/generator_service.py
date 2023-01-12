@@ -92,9 +92,11 @@ class Generator:
         pdf = pdf_service.PDF()
 
         for elem in plots_per_page:
+            print(elem)
             pdf.print_page(elem)
-
-        pdf.output(os.path.join('products', fileName + '.pdf'), 'F')
+        
+        fullFileName = fileName + '.pdf'
+        pdf.output(os.path.join('products', fullFileName), 'F')
 
 
 # Press the green button in the gutter to run the script.
