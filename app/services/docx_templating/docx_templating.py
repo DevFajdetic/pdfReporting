@@ -14,6 +14,10 @@ from app.utils import get_project_root
 
 GENERATE_BUTTON = "generate_button"
 
+# Templating window will get deleted immediately if local variables (called from main.py)
+app = QApplication([])
+w = QWidget()
+
 
 class WorkerSignals(QObject):
     """
@@ -42,25 +46,25 @@ class Generator(QRunnable):
     def run(self):
         pythoncom.CoInitialize()
         try:
-            outfile_word = "../../products/invitation.docx"
-            outfile_pdf = "../../products/invitation.pdf"
+            outfile_word = "./products/invitation.docx"
+            outfile_pdf = "./products/invitation.pdf"
 
-            doc = DocxTemplate('../../assets/docx_templating/inviteTmpl.docx')
+            doc = DocxTemplate('./assets/docx_templating/inviteTmpl.docx')
             context = {}
             array_keys = []
             for key, val in self.data.items():
                 print(key, val)
                 # Key is an image in plots
-                if os.path.exists('../../assets/plots/' + key):
+                if os.path.exists('./assets/plots/' + key):
                     print("Plot type")
-                    context[key] = InlineImage(doc, '../../assets/plots/' + key)
+                    context[key] = InlineImage(doc, './assets/plots/' + key)
                 # Key is an image in images
-                if os.path.exists('../../assets/images/' + key):
+                if os.path.exists('./assets/images/' + key):
                     print("ulazim")
                     print("Image type")
                     print("Klj", key)
                     print("Vr", val)
-                    context[key.replace(".", "_")] = InlineImage(doc, '../../assets/images/' + key)
+                    context[key.replace(".", "_")] = InlineImage(doc, './assets/images/' + key)
                 # Key is regular string or array of strings
                 else:
                     print("ulazim u else")
@@ -78,8 +82,8 @@ class Generator(QRunnable):
 
             if len(array_keys) == 0:
                 doc.render(context)
-                doc.save('../../products/invitation.docx')
-                convert('../../products/invitation.docx', '../../products/invitation.pdf')
+                doc.save('./products/invitation.docx')
+                convert('./products/invitation.docx', './products/invitation.pdf')
 
         except Exception as e:
             print("Printing exception..")
@@ -96,10 +100,9 @@ class Window(QWidget):
 
         # Thread for templating
         self.threadpool = QThreadPool()
-
         # Get all strings to be replaced (included header, footer..)
         # Ask user for input values in UI that replace those placeholders
-        doc = DocxTemplate('../../assets/docx_templating/inviteTmpl.docx')
+        doc = DocxTemplate('./assets/docx_templating/inviteTmpl.docx')
         placeholders_set = doc.undeclared_template_variables
         placeholders_list = list(placeholders_set)
         self.map_placeholders_ui = {}
@@ -126,10 +129,10 @@ class Window(QWidget):
                 layout.addRow(val)
                 continue
             if type(val) == QLabel:
-                if os.path.exists('../../assets/images/' + key):
-                    val.setPixmap(QPixmap('../../assets/images/{0}'.format(key)).scaled(300, 300, Qt.KeepAspectRatio))
-                if os.path.exists('../../assets/plots/' + key):
-                    val.setPixmap(QPixmap('../../assets/plots/{0}'.format(key)).scaled(300, 300, Qt.KeepAspectRatio))
+                if os.path.exists('./assets/images/' + key):
+                    val.setPixmap(QPixmap('./assets/images/{0}'.format(key)).scaled(300, 300, Qt.KeepAspectRatio))
+                if os.path.exists('./assets/plots/' + key):
+                    val.setPixmap(QPixmap('./assets/plots/{0}'.format(key)).scaled(300, 300, Qt.KeepAspectRatio))
                 layout.addRow(val)
             if type(val) == QLineEdit:
                 layout.addRow(key, val)
@@ -174,7 +177,8 @@ def check_if_image_placeholder(placeholder: str):
     return False
 
 
-app = QApplication([])
-w = Window()
-w.show()
-app.exec_()
+def run_service():
+    global app, w
+    w = Window()
+    w.show()
+    app.exec_()

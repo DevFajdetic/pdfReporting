@@ -2,6 +2,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog, QPushButton, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout, QLabel
 
 from app.utils import get_project_root
+import app.services.docx_templating.docx_templating as docxTmpl
 
 """"
 class App(Ui_MainWindow, QDialog):
@@ -93,7 +94,7 @@ class MainWindow(QMainWindow):
 
         button1.clicked.connect(self.open_plots_window)
         button3.clicked.connect(self.open_generate_reports_window)
-        button4.clicked.connect(self.open_templating_window)
+        button4.clicked.connect(docxTmpl.run_service)
         # Create a grid layout
         grid = QGridLayout()
 
@@ -127,15 +128,18 @@ class MainWindow(QMainWindow):
         self.generate_reports_window.show()
 
     def open_templating_window(self):
-        self.templating_window = TemplatingWindow()
-        self.templating_window.show()
+        #self.templating_window = TemplatingWindow()
+        #self.templating_window.show()
+        #docxTmpl.run_service()
+        dialog = docxTmpl.run_service()
+        dialog.exec_()
 
 
 with open(get_project_root() + "\\styles.qss", "r") as f:
     stylesheet = f.read()
 
-app = QApplication(sys.argv)
+app = QApplication([])
 main_window = MainWindow()
 app.setStyleSheet(stylesheet)
 main_window.show()
-sys.exit(app.exec_())
+app.exec_()
