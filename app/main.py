@@ -1,8 +1,9 @@
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QDialog, QPushButton, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout, QLabel
+from PyQt5.QtWidgets import QDialog, QPushButton, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout, QLabel, QFormLayout, \
+    QLineEdit
 
+from app.shared import constants
 from app.utils import get_project_root
-import app.services.docx_templating.docx_templating as docxTmpl
+import app.services.docx_templating.docx_templating as docx_templating_service
 
 """"
 class App(Ui_MainWindow, QDialog):
@@ -34,13 +35,7 @@ if __name__ == "__main__":
     sys.exit(app.exec_())
 
 """""
-
-import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QAction, qApp
-
-
-def on_button_clicked():
-    print("Button was clicked!")
 
 
 class PlotsWindow(QDialog):
@@ -51,10 +46,28 @@ class PlotsWindow(QDialog):
 
 
 class TemplatingWindow(QDialog):
+    filename = ""
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Generate Plots")
-        self.setGeometry(200, 200, 300, 200)
+
+        self.filename_line = QLineEdit()
+        # Create the button
+        button = QPushButton("Run Service", self)
+        button.setStyleSheet("QPushButton{background-color: #ff9800}")
+        button.clicked.connect(self.open_templating_window)
+
+        # Create a layout
+        layout = QFormLayout()
+        layout.addRow(constants.FILENAME_LABEL, self.filename_line)
+        layout.addWidget(button)
+
+        self.setLayout(layout)
+
+    def open_templating_window(self):
+        self.filename = self.filename_line.text()
+        docx_templating_service.run_service(self.filename)
 
 
 class GenerateReportWindow(QDialog):
@@ -67,7 +80,7 @@ class GenerateReportWindow(QDialog):
         button.clicked.connect(self.print_message)
 
         # Create a layout
-        layout = QVBoxLayout()
+        layout = QFormLayout()
         layout.addWidget(button)
 
         self.setLayout(layout)
@@ -94,7 +107,7 @@ class MainWindow(QMainWindow):
 
         button1.clicked.connect(self.open_plots_window)
         button3.clicked.connect(self.open_generate_reports_window)
-        button4.clicked.connect(docxTmpl.run_service)
+        button4.clicked.connect(self.open_templating_window)
         # Create a grid layout
         grid = QGridLayout()
 
@@ -128,11 +141,8 @@ class MainWindow(QMainWindow):
         self.generate_reports_window.show()
 
     def open_templating_window(self):
-        #self.templating_window = TemplatingWindow()
-        #self.templating_window.show()
-        #docxTmpl.run_service()
-        dialog = docxTmpl.run_service()
-        dialog.exec_()
+        self.templating_window = TemplatingWindow()
+        self.templating_window.show()
 
 
 with open(get_project_root() + "\\styles.qss", "r") as f:
