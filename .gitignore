@@ -1,6 +1,14 @@
 #Ignore environment
 env
 __pycache__
-plots
+app/assets/plots/
+app/assets/docx_templating/
+app/assets/excel_automation/
+app/assets/files/
+app/assets/images/
+app/assets/pdf_reports_generator/
+app/assets/pdf_templating/
+app/assets/tps_report/
+app/products/
 install
 pip

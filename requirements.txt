@@ -22,3 +22,15 @@ pytz==2022.7
 qt5-applications==5.15.2.2.2
 qt5-tools==5.15.2.1.2
 six==1.16.0
+
+reportlab~=3.6.12
+pip~=22.3.1
+wheel~=0.38.4
+setuptools~=65.5.1
+pdfrw~=0.4
+docxtpl~=0.16.5
+lxml~=4.9.2
+Jinja2~=3.1.2
+MarkupSafe~=2.1.1
+docx2pdf~=0.1.8
+colorama~=0.4.6
