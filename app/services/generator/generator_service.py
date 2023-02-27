@@ -104,20 +104,13 @@ class Generator:
 
 # Press the green button in the gutter to run the script.
 def run_service():
-    print("a")
-    print("aa")
     g = Generator()
     december = g.generate_sales_data(month=12)
-    print("aaa")
     g.plot(data=december, filename='december.png')
-    print("aaaa")
     plots_per_page = g.construct()
-    print("aaaaa")
     pdf = pdf_service.PDF()
 
     for elem in plots_per_page:
         pdf.print_page(elem)
-    print("aaaaaa")
     pdf.output(get_project_root() + '\\products\\SalesReport.pdf')
-    print("aaaaaaa")
 

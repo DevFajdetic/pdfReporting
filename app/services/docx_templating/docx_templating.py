@@ -1,6 +1,5 @@
 import os
 import re
-import sys
 from ast import literal_eval
 
 import pythoncom
@@ -166,10 +165,10 @@ def check_if_image_placeholder(placeholder: str):
 
 def run_service(filename):
     global app, w
-    #try:
-    w = Window(filename)
-    #except Exception:
-    #    QMessageBox.information(w, constants.ACTION_FINISHED, constants.FILE_FAILED_TO_OPEN + filename)
-    #    return
+    try:
+        w = Window(filename)
+    except Exception:
+        QMessageBox.information(w, constants.ACTION_FINISHED, constants.FILE_FAILED_TO_OPEN + filename)
+        return
     w.show()
     app.exec_()
