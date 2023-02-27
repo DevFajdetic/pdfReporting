@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QDialog, QPushButton, QWidget, QGridLayout, QVBoxLay
 from app.shared import constants
 from app.utils import get_project_root
 import app.services.docx_templating.docx_templating as docx_templating_service
-
+import app.services.generator.generator_service as pdf_reporting_service
 """"
 class App(Ui_MainWindow, QDialog):
     def setupUi(self, MainWindow):
@@ -76,17 +76,17 @@ class GenerateReportWindow(QDialog):
         self.setWindowTitle("Generate PDF Reports")
 
         # Create the button
-        button = QPushButton("Print message", self)
-        button.clicked.connect(self.print_message)
+        button1 = QPushButton("Yearly financial report", self)
+        button1.clicked.connect(self.open_yearly_report_window)
 
         # Create a layout
         layout = QFormLayout()
-        layout.addWidget(button)
+        layout.addWidget(button1)
 
         self.setLayout(layout)
 
-    def print_message(self):
-        print("Button in new window clicked!")
+    def open_yearly_report_window(self):
+        pdf_reporting_service.run_service()
 
 
 class MainWindow(QMainWindow):

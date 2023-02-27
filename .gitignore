@@ -10,6 +10,7 @@ app/assets/pdf_reports_generator/**
 app/assets/pdf_templating/**
 app/assets/tps_report/**
 app/products/**
+app/plots/**
 install
 pip
 
