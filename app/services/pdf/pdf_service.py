@@ -1,5 +1,7 @@
 from fpdf import FPDF
 
+from app.utils import get_project_root
+
 
 class PDF(FPDF):
     def __init__(self):
@@ -11,7 +13,7 @@ class PDF(FPDF):
         # Custom logo and positioning
         # Create an `assets` folder and put any wide and short image inside
         # Name the image `logo.jpg`
-        self.image('assets/logo.jpg', 10, 8, 33)
+        self.image(get_project_root() + '\\assets\\images\\logo.jpg', 10, 8, 33)
         self.set_font('Arial', 'B', 11)
         self.cell(self.WIDTH - 80)
         self.cell(60, 1, 'Sales report', 0, 0, 'R')

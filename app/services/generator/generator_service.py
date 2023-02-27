@@ -4,10 +4,13 @@ import numpy as np
 import pandas as pd
 import calendar
 from datetime import datetime
-from services.pdf import pdf_service
+from app.services.pdf import pdf_service
+from fpdf import FPDF
 
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
+
+from app.utils import get_project_root
 
 rcParams['axes.spines.top'] = False
 rcParams['axes.spines.right'] = False
@@ -100,15 +103,14 @@ class Generator:
 
 
 # Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    Generator.generate_sales_data(month=3)
-    december = Generator.generate_sales_data(month=12)
-    Generator.plot(data=december, filename='december.png')
-    plots_per_page = Generator.construct()
-    plots_per_page
+def run_service():
+    g = Generator()
+    december = g.generate_sales_data(month=12)
+    g.plot(data=december, filename='december.png')
+    plots_per_page = g.construct()
     pdf = pdf_service.PDF()
 
     for elem in plots_per_page:
         pdf.print_page(elem)
+    pdf.output(get_project_root() + '\\products\\SalesReport.pdf')
 
-    pdf.output('products/SalesReport.pdf', 'F')

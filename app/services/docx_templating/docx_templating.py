@@ -11,8 +11,7 @@ from docx2pdf import convert
 from docxtpl import DocxTemplate, InlineImage
 
 from app.utils import get_project_root
-
-GENERATE_BUTTON = "generate_button"
+import app.shared.constants as constants
 
 # Templating window will get deleted immediately if local variables (called from main.py)
 app = QApplication([])
@@ -37,56 +36,48 @@ class Generator(QRunnable):
     :param data: The data to add to replace placeholders
     """
 
-    def __init__(self, data: dict):
+    def __init__(self, data: dict, filename: str):
         super().__init__()
         self.data = data
+        self.filename_docx = filename
+        self.filename_pdf = str.replace(filename, ".docx", ".pdf")
         self.signals = WorkerSignals()
 
     @pyqtSlot()
     def run(self):
-        pythoncom.CoInitialize()
+        pythoncom.CoInitialize()  # For some reason required in pycharm :')
         try:
-            outfile_word = "./products/invitation.docx"
-            outfile_pdf = "./products/invitation.pdf"
+            outfile_word = "./products/{}".format(self.filename_docx)
+            outfile_pdf = "./products/{}".format(self.filename_pdf)
 
-            doc = DocxTemplate('./assets/docx_templating/inviteTmpl.docx')
+            doc = DocxTemplate('./assets/docx_templating/{}'.format(self.filename_docx))
             context = {}
             array_keys = []
             for key, val in self.data.items():
-                print(key, val)
                 # Key is an image in plots
                 if os.path.exists('./assets/plots/' + key):
-                    print("Plot type")
-                    context[key] = InlineImage(doc, './assets/plots/' + key)
+                    context[key.replace(".", "_")] = InlineImage(doc, './assets/plots/' + key)
                 # Key is an image in images
                 if os.path.exists('./assets/images/' + key):
-                    print("ulazim")
-                    print("Image type")
-                    print("Klj", key)
-                    print("Vr", val)
                     context[key.replace(".", "_")] = InlineImage(doc, './assets/images/' + key)
                 # Key is regular string or array of strings
                 else:
-                    print("ulazim u else")
                     try:
                         array_value = literal_eval(val)
                     except Exception:
                         print("Failed to eval literal, checking if str type")
                         if type(val == str):
-                            print("Str type val")
                             context[key] = val
                     else:
-                        print("Stringed array")
                         context[key] = array_value
                         array_keys.append(key)
 
             if len(array_keys) == 0:
                 doc.render(context)
-                doc.save('./products/invitation.docx')
-                convert('./products/invitation.docx', './products/invitation.pdf')
+                doc.save('./products/{}'.format(self.filename_docx))
+                convert('./products/'.format(self.filename_docx), './products/'.format(self.filename_pdf))
 
         except Exception as e:
-            print("Printing exception..")
             self.signals.error.emit(str(e))
             return
 
@@ -95,40 +86,39 @@ class Generator(QRunnable):
 
 class Window(QWidget):
 
-    def __init__(self):
+    def __init__(self, filename):
         super().__init__()
-
+        self.filename = filename
         # Thread for templating
         self.threadpool = QThreadPool()
         # Get all strings to be replaced (included header, footer..)
         # Ask user for input values in UI that replace those placeholders
-        doc = DocxTemplate('./assets/docx_templating/inviteTmpl.docx')
-        placeholders_set = doc.undeclared_template_variables
-        placeholders_list = list(placeholders_set)
+        doc = DocxTemplate('./assets/docx_templating/{}'.format(self.filename))
+        placeholders_list = list(doc.undeclared_template_variables)
+        print(placeholders_list)
         self.map_placeholders_ui = {}
 
         for value in placeholders_list:
             if check_if_image_placeholder(value):
+                # example.jpg -> example_jpg so templating and search don't break
                 value = value.replace("_", ".")
+                # map unique placeholders for UI
                 self.map_placeholders_ui[value] = QLabel(value)
-            # TODO ADD SUPPORT FOR GENERATING PLOTS
-            # TODO Captions
+                self.map_placeholders_ui[value + "_caption"] = QLineEdit(value)
             else:
                 self.map_placeholders_ui[value] = QLineEdit()
+            # TODO ADD SUPPORT FOR GENERATING PLOTS WITH COMMAND PLACEHOLDER ex. {{generate_monthly_report}}
 
-        # self.map_placeholders_ui[GENERATE_BUTTON] = QPushButton("Generate")
-        # self.map_placeholders_ui[GENERATE_BUTTON].pressed.connect(self.generate)
-
-        self.generate_btn = QPushButton("Generate PDF")
+        self.generate_btn = QPushButton(constants.GENERATE_BUTTON)
         self.generate_btn.pressed.connect(self.generate)
-
-        # UI Final
+        # UI Layout Setup
         layout = QFormLayout()
         for key, val in self.map_placeholders_ui.items():
             if type(val) == QPushButton:
                 layout.addRow(val)
                 continue
             if type(val) == QLabel:
+                # Show placeholders for images as pixel map of found image or plot
                 if os.path.exists('./assets/images/' + key):
                     val.setPixmap(QPixmap('./assets/images/{0}'.format(key)).scaled(300, 300, Qt.KeepAspectRatio))
                 if os.path.exists('./assets/plots/' + key):
@@ -139,12 +129,11 @@ class Window(QWidget):
 
         layout.addRow(self.generate_btn)
         self.setLayout(layout)
-        self.setWindowTitle("Templating")
+        self.setWindowTitle(constants.SERVICE_TEMPLATING)
 
     def generate(self):
-        # self.map_placeholders_ui[GENERATE_BUTTON].setDisabled(True)
         self.generate_btn.setDisabled(True)
-        data = {}
+        data = {}  # Take inputted values
         for key, val in self.map_placeholders_ui.items():
             if type(val) == QPushButton:
                 continue
@@ -154,21 +143,18 @@ class Window(QWidget):
             if type(val) == QLineEdit:
                 data[key] = val.text()
 
-        g = Generator(data)
+        g = Generator(data, self.filename)
         g.signals.file_saved_as.connect(self.generated)
         g.signals.error.connect(print)  # Print errors to console.
         self.threadpool.start(g)
 
-    def generated(self, outfile_pdf):
+    def generated(self):
         self.generate_btn.setDisabled(False)
         try:
-            print(os.path)
-            print("Opening pdf...", get_project_root() + '\\products\\invitation.pdf')
-            os.startfile(get_project_root() + '\\products\\invitation.pdf')
+            os.startfile(get_project_root() + '\\products\\{}'.format(str.replace(self.filename, 'docx', 'pdf')))
         except Exception:
             # If startfile not available, show dialog.
-            print("except")
-            QMessageBox.information(self, "Finished", "PDF has been generated")
+            QMessageBox.information(self, constants.ACTION_FINISHED, constants.GENERATE_SUCCESSFUL)
 
 
 def check_if_image_placeholder(placeholder: str):
@@ -177,8 +163,12 @@ def check_if_image_placeholder(placeholder: str):
     return False
 
 
-def run_service():
+def run_service(filename):
     global app, w
-    w = Window()
+    try:
+        w = Window(filename)
+    except Exception:
+        QMessageBox.information(w, constants.ACTION_FINISHED, constants.FILE_FAILED_TO_OPEN + filename)
+        return
     w.show()
     app.exec_()

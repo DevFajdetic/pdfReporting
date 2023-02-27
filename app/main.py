@@ -1,8 +1,11 @@
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QDialog, QPushButton, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout, QLabel
+from PyQt5.QtWidgets import QDialog, QPushButton, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout, QLabel, QFormLayout, \
+    QLineEdit, QMessageBox
 
+from app.shared import constants
 from app.utils import get_project_root
-import app.services.docx_templating.docx_templating as docxTmpl
+import app.services.docx_templating.docx_templating as docx_templating_service
+import app.services.generator.generator_service as pdf_reporting_service
+import app.services.excel_reporting.excel_reporting as excel_reporting_service
 
 """"
 class App(Ui_MainWindow, QDialog):
@@ -34,13 +37,7 @@ if __name__ == "__main__":
     sys.exit(app.exec_())
 
 """""
-
-import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QAction, qApp
-
-
-def on_button_clicked():
-    print("Button was clicked!")
 
 
 class PlotsWindow(QDialog):
@@ -51,10 +48,58 @@ class PlotsWindow(QDialog):
 
 
 class TemplatingWindow(QDialog):
+    filename = ""
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Generate Plots")
-        self.setGeometry(200, 200, 300, 200)
+
+        self.filename_line = QLineEdit()
+        # Create the button
+        button = QPushButton("Run Service", self)
+        button.setStyleSheet("QPushButton{background-color: #ff9800}")
+        button.clicked.connect(self.open_templating_window)
+
+        # Create a layout
+        layout = QFormLayout()
+        layout.addRow(constants.FILENAME_LABEL, self.filename_line)
+        layout.addWidget(button)
+
+        self.setLayout(layout)
+
+    def open_templating_window(self):
+        self.filename = self.filename_line.text()
+        docx_templating_service.run_service(self.filename)
+
+
+class ExcelReportWindow(QDialog):
+    filename = ""
+
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Excel Reporting")
+
+        self.filename_line = QLineEdit()
+        # Create the button
+        button = QPushButton("Run Service", self)
+        button.setStyleSheet("QPushButton{background-color: #ff9800}")
+        button.clicked.connect(self.open_excel_reporting_window)
+
+        # Create a layout
+        layout = QFormLayout()
+        layout.addRow(constants.INPUT_FILENAME_LABEL, self.filename_line)
+        layout.addWidget(button)
+
+        self.setLayout(layout)
+
+    def open_excel_reporting_window(self):
+        self.filename = self.filename_line.text()
+        try:
+            excel_reporting_service.run_service(self.filename)
+        except Exception:
+            QMessageBox.information(self, constants.ACTION_FINISHED, constants.GENERATE_UNSUCCESSFUL)
+        else:
+            QMessageBox.information(self, constants.ACTION_FINISHED, constants.GENERATE_SUCCESSFUL)
 
 
 class GenerateReportWindow(QDialog):
@@ -63,17 +108,17 @@ class GenerateReportWindow(QDialog):
         self.setWindowTitle("Generate PDF Reports")
 
         # Create the button
-        button = QPushButton("Print message", self)
-        button.clicked.connect(self.print_message)
+        button1 = QPushButton("Yearly financial report", self)
+        button1.clicked.connect(self.open_yearly_report_window)
 
         # Create a layout
-        layout = QVBoxLayout()
-        layout.addWidget(button)
+        layout = QFormLayout()
+        layout.addWidget(button1)
 
         self.setLayout(layout)
 
-    def print_message(self):
-        print("Button in new window clicked!")
+    def open_yearly_report_window(self):
+        pdf_reporting_service.run_service()
 
 
 class MainWindow(QMainWindow):
@@ -93,8 +138,9 @@ class MainWindow(QMainWindow):
         button4 = QPushButton("Templating", self)
 
         button1.clicked.connect(self.open_plots_window)
+        button2.clicked.connect(self.open_excel_report_window)
         button3.clicked.connect(self.open_generate_reports_window)
-        button4.clicked.connect(docxTmpl.run_service)
+        button4.clicked.connect(self.open_templating_window)
         # Create a grid layout
         grid = QGridLayout()
 
@@ -123,16 +169,17 @@ class MainWindow(QMainWindow):
         self.plots_window = PlotsWindow()
         self.plots_window.show()
 
+    def open_excel_report_window(self):
+        self.plots_window = ExcelReportWindow()
+        self.plots_window.show()
+
     def open_generate_reports_window(self):
         self.generate_reports_window = GenerateReportWindow()
         self.generate_reports_window.show()
 
     def open_templating_window(self):
-        #self.templating_window = TemplatingWindow()
-        #self.templating_window.show()
-        #docxTmpl.run_service()
-        dialog = docxTmpl.run_service()
-        dialog.exec_()
+        self.templating_window = TemplatingWindow()
+        self.templating_window.show()
 
 
 with open(get_project_root() + "\\styles.qss", "r") as f:
