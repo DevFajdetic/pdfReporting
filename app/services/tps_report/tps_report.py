@@ -12,6 +12,12 @@ from pdfrw import PdfReader
 from pdfrw.buildxobj import pagexobj
 from pdfrw.toreportlab import makerl
 
+from app.shared import constants
+from app.utils import get_project_root
+
+app = QApplication([])
+w = QWidget()
+
 
 class WorkerSignals(QObject):
     """
@@ -31,17 +37,18 @@ class Generator(QRunnable):
     :param data: The data to add to the PDF for generating.
     """
 
-    def __init__(self, data):
+    def __init__(self, data, filename):
         super().__init__()
         self.data = data
+        self.filename = filename
         self.signals = WorkerSignals()
 
     @pyqtSlot()
     def run(self):
         try:
-            outfile = "result.pdf"
+            outfile = get_project_root() + '\\products\\' + self.filename
 
-            template = PdfReader("../../assets/tps_report/template.pdf", decompress=False).pages[0]
+            template = PdfReader(get_project_root() + '\\assets\\fill_sign_report\\' + self.filename, decompress=False).pages[0]
             template_obj = pagexobj(template)
 
             canvas = Canvas(outfile)
@@ -101,9 +108,10 @@ class Generator(QRunnable):
 
 class Window(QWidget):
 
-    def __init__(self):
+    def __init__(self, filename):
         super().__init__()
 
+        self.filename = filename
         self.threadpool = QThreadPool()
 
         self.name = QLineEdit()
@@ -116,6 +124,7 @@ class Window(QWidget):
         self.comments = QTextEdit()
 
         self.generate_btn = QPushButton("Generate PDF")
+        self.generate_btn.setStyleSheet("QPushButton{background-color: #2196f3}")
         self.generate_btn.pressed.connect(self.generate)
 
         layout = QFormLayout()
@@ -142,7 +151,7 @@ class Window(QWidget):
             'n_errors': str(self.n_errors.value()),
             'comments': self.comments.toPlainText()
         }
-        g = Generator(data)
+        g = Generator(data, self.filename)
         g.signals.file_saved_as.connect(self.generated)
         g.signals.error.connect(print)  # Print errors to console.
         self.threadpool.start(g)
@@ -157,7 +166,12 @@ class Window(QWidget):
             QMessageBox.information(self, "Finished", "PDF has been generated")
 
 
-app = QApplication([])
-w = Window()
-w.show()
-app.exec_()
+def run_service(filename):
+    global app, w
+    try:
+        w = Window(filename)
+    except Exception:
+        QMessageBox.information(w, constants.ACTION_FINISHED, constants.FILE_FAILED_TO_OPEN + filename)
+        return
+    w.show()
+    app.exec_()

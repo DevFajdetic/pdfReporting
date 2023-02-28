@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QDialog, QPushButton, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout, QLabel, QFormLayout, \
+from PyQt5.QtWidgets import QDialog, QPushButton, QWidget, QGridLayout, QFormLayout, \
     QLineEdit, QMessageBox
 
 from app.shared import constants
@@ -6,45 +6,33 @@ from app.utils import get_project_root
 import app.services.docx_templating.docx_templating as docx_templating_service
 import app.services.generator.generator_service as pdf_reporting_service
 import app.services.excel_reporting.excel_reporting as excel_reporting_service
-
-""""
-class App(Ui_MainWindow, QDialog):
-    def setupUi(self, MainWindow):
-        super().setupUi(MainWindow)
-        self.generateButton.clicked.connect(self.on_generate_pdf)
-        self.browserButton.clicked.connect(self.browser_files)
-
-    def on_generate_pdf(self, file_name):
-        generator = Generator()
-        generator.generate_pdf(file_name)
-
-    def browser_files(self):
-        file_filter = 'Data File (*.xlsx *.csv *.xls)'
-        fname = QFileDialog.getSaveFileName(parent=self, directory=os.getcwd(), filter=file_filter,
-                                            initialFilter=file_filter, caption='Select Excel or csv file')
-        self.filename.setText(fname[0])
-        shutil.copy(fname[0], "./assets/files")
+import app.services.tps_report.tps_report as fill_and_sign_report
+from PyQt5.QtWidgets import QApplication, QMainWindow
 
 
-if __name__ == "__main__":
-    import sys
+class FillPDFWindow(QDialog):
+    filename = ""
 
-    app = QtWidgets.QApplication(sys.argv)
-    mainWindow = QtWidgets.QMainWindow()
-    ui = App()
-    ui.setupUi(mainWindow)
-    mainWindow.show()
-    sys.exit(app.exec_())
-
-"""""
-from PyQt5.QtWidgets import QApplication, QMainWindow, QAction, qApp
-
-
-class PlotsWindow(QDialog):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Generate Plots")
-        self.setGeometry(200, 200, 300, 200)
+        self.setWindowTitle(constants.SERVICE_FILL_SIGN)
+
+        self.filename_line = QLineEdit()
+        # Create the button
+        button = QPushButton(constants.SERVICE_RUN, self)
+        button.setStyleSheet("QPushButton{background-color: #2196f3}")
+        button.clicked.connect(self.open_fill_pdf_window)
+
+        # Create a layout
+        layout = QFormLayout()
+        layout.addRow(constants.FILENAME_LABEL, self.filename_line)
+        layout.addWidget(button)
+
+        self.setLayout(layout)
+
+    def open_fill_pdf_window(self):
+        self.filename = self.filename_line.text()
+        fill_and_sign_report.run_service(self.filename)
 
 
 class TemplatingWindow(QDialog):
@@ -52,11 +40,11 @@ class TemplatingWindow(QDialog):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Generate Plots")
+        self.setWindowTitle(constants.SERVICE_TEMPLATING)
 
         self.filename_line = QLineEdit()
         # Create the button
-        button = QPushButton("Run Service", self)
+        button = QPushButton(constants.SERVICE_RUN, self)
         button.setStyleSheet("QPushButton{background-color: #ff9800}")
         button.clicked.connect(self.open_templating_window)
 
@@ -77,12 +65,12 @@ class ExcelReportWindow(QDialog):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Excel Reporting")
+        self.setWindowTitle(constants.SERVICE_REPORTING)
 
         self.filename_line = QLineEdit()
         # Create the button
-        button = QPushButton("Run Service", self)
-        button.setStyleSheet("QPushButton{background-color: #ff9800}")
+        button = QPushButton(constants.SERVICE_RUN, self)
+        button.setStyleSheet("QPushButton{background-color: #f44336}")
         button.clicked.connect(self.open_excel_reporting_window)
 
         # Create a layout
@@ -109,6 +97,7 @@ class GenerateReportWindow(QDialog):
 
         # Create the button
         button1 = QPushButton("Yearly financial report", self)
+        button1.setStyleSheet("QPushButton{background-color: #4caf50}")
         button1.clicked.connect(self.open_yearly_report_window)
 
         # Create a layout
@@ -125,22 +114,23 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         # Initialize all windows to None
-        self.plots_window = None
+        self.fill_pdf_window = None
         self.generate_reports_window = None
         self.templating_window = None
 
-        self.setWindowTitle("Main Window")
+        self.setWindowTitle(constants.WINDOW_MAIN)
         # Create the button
         # Create the buttons
-        button1 = QPushButton("Generate Plots", self)
+        button1 = QPushButton("Fill and Sign PDF", self)
         button2 = QPushButton("Generate Excel Report", self)
         button3 = QPushButton("Generate PDF Report", self)
         button4 = QPushButton("Templating", self)
 
-        button1.clicked.connect(self.open_plots_window)
+        button1.clicked.connect(self.open_fill_pdf_window)
         button2.clicked.connect(self.open_excel_report_window)
         button3.clicked.connect(self.open_generate_reports_window)
         button4.clicked.connect(self.open_templating_window)
+
         # Create a grid layout
         grid = QGridLayout()
 
@@ -165,9 +155,9 @@ class MainWindow(QMainWindow):
         button3.setStyleSheet("QPushButton{background-color: #4caf50}")
         button4.setStyleSheet("QPushButton{background-color: #ff9800}")
 
-    def open_plots_window(self):
-        self.plots_window = PlotsWindow()
-        self.plots_window.show()
+    def open_fill_pdf_window(self):
+        self.fill_pdf_window = FillPDFWindow()
+        self.fill_pdf_window.show()
 
     def open_excel_report_window(self):
         self.plots_window = ExcelReportWindow()
