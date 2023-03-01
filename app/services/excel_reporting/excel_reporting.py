@@ -5,8 +5,8 @@ from openpyxl.styles import Font
 from openpyxl.chart import BarChart, Reference
 import string
 
-from app.shared import constants
-from app.utils import get_project_root
+from shared import constants
+from utils import get_project_root
 
 
 def run_service(file_name):

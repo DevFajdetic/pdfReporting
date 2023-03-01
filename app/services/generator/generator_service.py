@@ -4,13 +4,13 @@ import numpy as np
 import pandas as pd
 import calendar
 from datetime import datetime
-from app.services.pdf import pdf_service
+from services.pdf import pdf_service
 from fpdf import FPDF
 
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 
-from app.utils import get_project_root
+from utils import get_project_root
 
 rcParams['axes.spines.top'] = False
 rcParams['axes.spines.right'] = False

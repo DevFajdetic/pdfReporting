@@ -1,6 +1,6 @@
 from fpdf import FPDF
 
-from app.utils import get_project_root
+from utils import get_project_root
 
 
 class PDF(FPDF):
