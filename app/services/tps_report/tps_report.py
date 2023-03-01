@@ -12,8 +12,8 @@ from pdfrw import PdfReader
 from pdfrw.buildxobj import pagexobj
 from pdfrw.toreportlab import makerl
 
-from app.shared import constants
-from app.utils import get_project_root
+from shared import constants
+from utils import get_project_root
 
 app = QApplication([])
 w = QWidget()

@@ -9,9 +9,9 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QPushButton, QLineEdit, QApplication, QFormLayout, QWidget, QMessageBox, QLabel
 from docx2pdf import convert
 from docxtpl import DocxTemplate, InlineImage
-
-from app.utils import get_project_root
-import app.shared.constants as constants
+from utils import get_project_root
+import shared.constants as constants
+import shutil
 
 # Templating window will get deleted immediately if local variables (called from main.py)
 app = QApplication([])
@@ -36,21 +36,22 @@ class Generator(QRunnable):
     :param data: The data to add to replace placeholders
     """
 
-    def __init__(self, data: dict, filename: str):
+    def __init__(self, data: dict, filepath: str):
         super().__init__()
         self.data = data
-        self.filename_docx = filename
-        self.filename_pdf = str.replace(filename, ".docx", ".pdf")
+        self.filename_docx = os.path.split(filepath)[1]
+        
+        
+        self.filename_pdf = str.replace(self.filename_docx, ".docx", ".pdf")
         self.signals = WorkerSignals()
 
     @pyqtSlot()
     def run(self):
         pythoncom.CoInitialize()  # For some reason required in pycharm :')
         try:
-            outfile_word = "./products/{}".format(self.filename_docx)
             outfile_pdf = "./products/{}".format(self.filename_pdf)
 
-            doc = DocxTemplate('./assets/docx_templating/{}'.format(self.filename_docx))
+            doc = DocxTemplate(constants.DOCX_TEMPLATING_PATH + self.filename_docx)
             context = {}
             array_keys = []
             for key, val in self.data.items():
@@ -74,8 +75,9 @@ class Generator(QRunnable):
 
             if len(array_keys) == 0:
                 doc.render(context)
-                doc.save('./products/{}'.format(self.filename_docx))
-                convert('./products/'.format(self.filename_docx), './products/'.format(self.filename_pdf))
+                doc.save(constants.DOCX_TEMPLATING_PATH + self.filename_docx)
+                print(self.filename_docx, self.filename_pdf)
+                convert(constants.DOCX_TEMPLATING_PATH + self.filename_docx, './products/'+self.filename_pdf)
 
         except Exception as e:
             self.signals.error.emit(str(e))
@@ -93,7 +95,7 @@ class Window(QWidget):
         self.threadpool = QThreadPool()
         # Get all strings to be replaced (included header, footer..)
         # Ask user for input values in UI that replace those placeholders
-        doc = DocxTemplate('./assets/docx_templating/{}'.format(self.filename))
+        doc = DocxTemplate(filename)
         placeholders_list = list(doc.undeclared_template_variables)
         print(placeholders_list)
         self.map_placeholders_ui = {}
@@ -110,6 +112,7 @@ class Window(QWidget):
             # TODO ADD SUPPORT FOR GENERATING PLOTS WITH COMMAND PLACEHOLDER ex. {{generate_monthly_report}}
 
         self.generate_btn = QPushButton(constants.GENERATE_BUTTON)
+        self.generate_btn.setStyleSheet("QPushButton{background-color: #4caf50}")
         self.generate_btn.pressed.connect(self.generate)
         # UI Layout Setup
         layout = QFormLayout()
